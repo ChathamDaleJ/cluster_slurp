@@ -78,7 +78,8 @@ while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
     if ( $line =~ /DX de\s+(\w+):\s+([0-9.]+)\s+(\w+)\s+(.*)\s+/ )
     {
         #         DX de OE3SPR:    28017.0  PY2OT        tks qso dr rod                 1847Z
-        print $line . "\n";
+        # print $line . "\n";
+        #DX de N3FMC:     21300.0  T77LA        59 in PA                       2036Z
         $line =~ /DX de\s+(\w+):\s+([0-9.]+)\s+(\w+)\s+(.*)\s+/;
 
         $spotter_callsign = $1;
@@ -86,23 +87,29 @@ while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
         $spot_callsign    = $3;
         $spot_remarks     = trim ( $4 );
 
-        printf "spotter_callsign: %s\n", $spotter_callsign;
-        printf "  spot_frequency: %s\n", $spot_frequency;
-        printf "   spot_callsign: %s\n", $spot_callsign;
-        printf "    spot_remarks: %s\n", $spot_remarks;
+        # printf "spotter_callsign: %s\n", $spotter_callsign;
+        # printf "  spot_frequency: %s\n", $spot_frequency;
+        # printf "   spot_callsign: %s\n", $spot_callsign;
+        # printf "    spot_remarks: %s\n", $spot_remarks;
 
-        $spot      = sprintf "cluster_identifier=%s:spotter_callsign=%s:spot_frequency=%s:spot_callsign=%s:cluster_identifier=%s:spot_remarks=%s",
-                             $cluster_identifier,  $spotter_callsign,  $spot_frequency,  $spot_callsign,  $cluster_identifier,   $spot_remarks;
-        $spot      = sprintf "DX %s %s %s: %s", $spot_frequency, $spot_callsign, $cluster_identifier, $spot_remarks;
+        $spot      = sprintf "cluster_identifier=%s:spotter_callsign=%s:spot_frequency=%s:spot_callsign=%s:spot_remarks=%s",
+                             $cluster_identifier,
+                             $spotter_callsign,
+                             $spot_frequency,
+                             $spot_callsign,
+                             $spot_remarks;
         printf "%s\n",  $spot;
+        print $line . "\n\n";
+        # print "\n";
 
+        ########################################################################
         my $socket = new IO::Socket::INET
         (
             PeerHost => 'localhost',
             PeerPort => '7777',
             Proto => 'tcp',
         );
-
+        
         if($socket)
         {
             my $size = $socket->send($spot);

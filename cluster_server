@@ -4,6 +4,7 @@ use Getopt::Long;
 use IO::Socket::INET;
 use Net::Telnet;
 use Ham::Reference::QRZ;
+use Data::Dumper;
 use strict;
 use warnings;
 
@@ -13,13 +14,19 @@ my $bio_file;
 my $callsign;
 my $client_address;
 my $client_socket;
+my $cluster_data;
+my $cluster_report;
 my $dxcc;
+my $key;
 my $listing;
 my $local_host;
 my $local_login;
 my $local_port;
 my $local_telnet;
 my $qrz;
+my $qrz_data;
+my $qrz_cc;
+my $qrz_state;
 my $qrz_password;
 my $qrz_username;
 my $remarks;
@@ -27,7 +34,9 @@ my $returned;
 my $session;
 my $socket;
 my $spot;
-
+my $spot_data;
+my $spot_datum;
+my $value;
 
 $Data::Dumper::Sortkeys = 1;
 
@@ -69,7 +78,8 @@ die "Cannot create socket $!\n" unless $socket;
 
 $SIG{INT} = sub { $socket->close(); exit 0; };
 
-while(1) {
+while(1)
+{
     $client_socket = $socket->accept();
 
     # Get information about a newly connected client
@@ -78,9 +88,54 @@ while(1) {
     # Read up to 1024 characters from the connected client
     $spot = "";
     $client_socket->recv($spot, 1024);
-    printf "%s\n", $spot;
-    local_flush ( );
-    $local_telnet -> print ( $spot );
+    
+    #printf "spot: %s\n", $spot;
+    @$spot_data = split /:/, $spot, 5;
+    #print "spot_data:\n";
+    #print Dumper $spot_data;
+
+    for $spot_datum ( @$spot_data )
+    {
+      ( $key, $value ) = split /=/, $spot_datum, 2;
+      $cluster_data -> { $key } = $value;
+      #printf "key: %-20s  value: %s\n", $key, $value;
+    }
+
+    $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
+    $qrz_cc = $qrz_data -> { dxcc } -> { cc };
+    if ( $qrz_data -> { listing } -> { state } )
+    {
+      $qrz_state = $qrz_data -> { listing } -> { 'state' };
+    }
+    else
+    {
+      $qrz_state = "";
+    }
+    $remarks = $cluster_data -> { spot_remarks };
+
+    printf "cluster_data:\n";
+    print Dumper $cluster_data;
+
+    $cluster_data -> { spot_remarks } = sprintf "%s/%s %s", $qrz_cc, $qrz_state, $remarks;
+
+    printf "cluster_data:\n";
+    print Dumper $cluster_data;
+
+    $cluster_report = sprintf "DX de %s: %s %s %s %s\n",
+                              $cluster_data -> { cluster_identifier },
+                              $cluster_data -> { spotter_callsign },
+                              $cluster_data -> { spot_frequency },
+                              $cluster_data -> { spot_callsign },
+                              $cluster_data -> { spot_remarks };
+#    #printf "            Country: %s\n", $qrz_data -> { listing } -> { country };
+#    #printf "              State: %s\n", $qrz_data -> { listing } -> { state };
+    printf "Cluster report: %s\n", $cluster_report;
+#    #print Dumper $qrz_data;
+    print "************************************************************************\n";
+#    print "\n";
+#
+#    local_flush ( );
+#    $local_telnet -> print ( $spot );key:
 }
 #
 sub local_flush
@@ -97,40 +152,105 @@ sub trim
 
 ########################################################################
 
-sub get_call_data
+sub get_qrz_data
 {
   my $callsign = shift;
 
-}
-$callsign = "wa5wni";
+  my $qrz_data;
+
+  # $callsign = "wa5wni";
 
 $qrz -> set_callsign ( $callsign );
  
 # get the listing, bio and other information
-$listing      = $qrz -> get_listing;
-$bio          = $qrz -> get_bio;
-$bio_file     = $qrz -> get_bio_file;
-$dxcc         = $qrz -> get_dxcc;
-$session      = $qrz -> get_session;
-$arrl_section = $qrz -> get_arrl_section;
+#$listing      = $qrz -> get_listing;
+#$bio          = $qrz -> get_bio;
+#$bio_file     = $qrz -> get_bio_file;
+#$dxcc         = $qrz -> get_dxcc;
+#$session      = $qrz -> get_session;
+#$arrl_section = $qrz -> get_arrl_section;
  
-# dump the data to see how it's structured
-print "Dumper listing:\n";
-print Dumper ( $listing );
-print "\n\n";
-print "Dumper bio\n";
-print Dumper ( $bio );
-print "\n\n";
-print "Dumper bio_file\n";
-print Dumper ( $bio_file );
-print "\n\n";
-print "Dumper dxcc\n";
-print Dumper ( $dxcc );
-print "\n\n";
-print "Dumper session\n";
-print Dumper ( $session );
-print "\n\n";
-print "Dumper arrl_section\n";
-print Dumper ( $arrl_section );
-print "\n\n";
+  $qrz_data -> { listing }      = $qrz -> get_listing ;
+  $qrz_data -> { bio }          = $qrz -> get_bio ;
+  $qrz_data -> { bio_file }     = $qrz -> get_bio_file ;
+  $qrz_data -> { dxcc }         = $qrz -> get_dxcc ;
+  $qrz_data -> { session }      = $qrz -> get_session ;
+  $qrz_data -> { arrl_section } = $qrz -> get_arrl_section ;
 
+  return ( $qrz_data );
+}
+
+#Dumper listing:
+#$VAR1 = {
+#          'addr1' => 'LAVALLEJA MINAS',
+#          'addr2' => 'VILLA SERRANA',
+#          'call' => 'CX7SS',
+#          'ccode' => '270',
+#          'class' => 'AV',
+#          'country' => 'Uruguay',
+#          'cqzone' => '13',
+#          'dxcc' => '144',
+#          'email' => 'cx7ss@hotmail.com',
+#          'eqsl' => '1',
+#          'fname' => 'E. EUGENIO',
+#          'grid' => 'GF25lq',
+#          'ituzone' => '14',
+#          'land' => 'Uruguay',
+#          'lat' => '-34.313333',
+#          'locref' => '3',
+#          'lon' => '-55.043333',
+#          'lotw' => '1',
+#          'moddate' => '2021-08-10 15:40:38',
+#          'mqsl' => '1',
+#          'name' => 'DE MARINO',
+#          'qslmgr' => 'QSL VIA LOTW -E.QSL-QRZ,COM',
+#          'u_views' => '128741',
+#          'user' => 'CX7SS',
+#          'zip' => '30000'
+#        };
+#
+#
+#Dumper bio
+#$VAR1 = undef;
+#
+#
+#Dumper bio_file
+#$VAR1 = undef;
+#
+#
+#Dumper dxcc
+#$VAR1 = {
+#          'cc' => 'UY',
+#          'ccc' => 'URY',
+#          'continent' => 'SA',
+#          'cqzone' => '13',
+#          'dxcc' => '144',
+#          'ituzone' => '14',
+#          'lat' => '-33.119150',
+#          'lon' => '-56.140137',
+#          'name' => 'Uruguay',
+#          'timezone' => '-3'
+#        };
+#
+#
+#Dumper session
+#$VAR1 = {
+#          'Count' => '3263',
+#          'GMTime' => 'Mon May 27 19:31:11 2024',
+#          'Key' => 'dbca4cd50de560c48ab3265b07baba17',
+#          'Remark' => 'cpu: 0.019s',
+#          'SubExp' => 'Wed Jan 15 02:01:03 2025'
+#        };
+#
+#
+#Dumper arrl_section
+#$VAR1 = undef;
+#
+#
+#$VAR1 = {
+#          'spot_callsign' => 'CX7SS',
+#          'spot_cluster_identifier' => 'WA9PIE-2',
+#          'spot_frequency' => '21248.0',
+#          'spot_remarks' => 'PLS LISTEN TO OD5OJ'
+#        };
+#$VAR1 = !!1;
