@@ -113,29 +113,20 @@ while(1)
     }
     $remarks = $cluster_data -> { spot_remarks };
 
-    printf "cluster_data:\n";
-    print Dumper $cluster_data;
+    $cluster_data -> { spot_remarks } = sprintf "%s: %s/%s %s %s", $cluster_data -> { cluster_identifier },
+                                                                   $qrz_cc, $qrz_state,
+                                                                   $cluster_data -> { spotter_callsign },
+                                                                   $remarks;
 
-    $cluster_data -> { spot_remarks } = sprintf "%s/%s %s", $qrz_cc, $qrz_state, $remarks;
-
-    printf "cluster_data:\n";
-    print Dumper $cluster_data;
-
-    $cluster_report = sprintf "DX de %s: %s %s %s %s\n",
-                              $cluster_data -> { cluster_identifier },
-                              $cluster_data -> { spotter_callsign },
+    $cluster_report = sprintf "DX %s %s %s\n",
                               $cluster_data -> { spot_frequency },
                               $cluster_data -> { spot_callsign },
                               $cluster_data -> { spot_remarks };
-#    #printf "            Country: %s\n", $qrz_data -> { listing } -> { country };
-#    #printf "              State: %s\n", $qrz_data -> { listing } -> { state };
-    printf "Cluster report: %s\n", $cluster_report;
 #    #print Dumper $qrz_data;
-    print "************************************************************************\n";
-#    print "\n";
 #
-#    local_flush ( );
-#    $local_telnet -> print ( $spot );key:
+    local_flush ( );
+    printf "cluster_report: %s", $cluster_report;
+    $local_telnet -> print ( $cluster_report );
 }
 #
 sub local_flush
