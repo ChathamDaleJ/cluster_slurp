@@ -1,0 +1,136 @@
+#!/usr/bin/env perl
+
+use Getopt::Long;
+use IO::Socket::INET;
+use Net::Telnet;
+use Ham::Reference::QRZ;
+use strict;
+use warnings;
+
+my $arrl_section;
+my $bio;
+my $bio_file;
+my $callsign;
+my $client_address;
+my $client_socket;
+my $dxcc;
+my $listing;
+my $local_host;
+my $local_login;
+my $local_port;
+my $local_telnet;
+my $qrz;
+my $qrz_password;
+my $qrz_username;
+my $remarks;
+my $returned;
+my $session;
+my $socket;
+my $spot;
+
+
+$Data::Dumper::Sortkeys = 1;
+
+# auto-flush on socket
+$| = 1;
+ 
+$qrz_username = "wa5wni";
+$qrz_password = "ChDa0123";
+
+$qrz = Ham::Reference::QRZ->new(
+  username => $qrz_username,
+  password => $qrz_password
+);
+
+$local_login       = 'k5lrk-4';
+
+$local_host = 'localhost';
+$local_port = 6600;
+$local_telnet  = new Net::Telnet ( Timeout => 30,
+                                   telnetmode => 0,
+                                   Errmode => 'return',
+                                   Input_log => "local_data.log",
+                                   Port => 6600
+                                 );
+$local_telnet->open ( $local_host );
+$local_telnet->waitfor ( '/ogin:/i' );
+$local_telnet->print ( $local_login ); 
+local_flush ( );
+
+# Creating a listening socket
+   $socket = new IO::Socket::INET (
+    LocalHost => '0.0.0.0',
+    LocalPort => '7777',
+    Proto => 'tcp',
+    Listen => 5,
+    Reuse => 1
+);
+die "Cannot create socket $!\n" unless $socket;
+
+$SIG{INT} = sub { $socket->close(); exit 0; };
+
+while(1) {
+    $client_socket = $socket->accept();
+
+    # Get information about a newly connected client
+    $client_address = $client_socket->peerhost();
+
+    # Read up to 1024 characters from the connected client
+    $spot = "";
+    $client_socket->recv($spot, 1024);
+    printf "%s\n", $spot;
+    local_flush ( );
+    $local_telnet -> print ( $spot );
+}
+#
+sub local_flush
+{
+    $returned = $local_telnet -> get ( Timeout => 0 );
+}
+
+sub trim
+{
+    my $s = shift;
+    $s =~ s/^\s+|\s+$//g;
+    return $s
+}
+
+########################################################################
+
+sub get_call_data
+{
+  my $callsign = shift;
+
+}
+$callsign = "wa5wni";
+
+$qrz -> set_callsign ( $callsign );
+ 
+# get the listing, bio and other information
+$listing      = $qrz -> get_listing;
+$bio          = $qrz -> get_bio;
+$bio_file     = $qrz -> get_bio_file;
+$dxcc         = $qrz -> get_dxcc;
+$session      = $qrz -> get_session;
+$arrl_section = $qrz -> get_arrl_section;
+ 
+# dump the data to see how it's structured
+print "Dumper listing:\n";
+print Dumper ( $listing );
+print "\n\n";
+print "Dumper bio\n";
+print Dumper ( $bio );
+print "\n\n";
+print "Dumper bio_file\n";
+print Dumper ( $bio_file );
+print "\n\n";
+print "Dumper dxcc\n";
+print Dumper ( $dxcc );
+print "\n\n";
+print "Dumper session\n";
+print Dumper ( $session );
+print "\n\n";
+print "Dumper arrl_section\n";
+print Dumper ( $arrl_section );
+print "\n\n";
+

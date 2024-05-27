@@ -1,0 +1,135 @@
+#!/usr/bin/perl
+
+use Getopt::Long 'HelpMessage';
+use IO::Socket::INET;
+use Net::Telnet;
+use strict;
+use warnings;
+
+my $remote_host;
+my $remote_telnet;
+my $spot_callsign;
+my $spot_frequency;
+my $spotter_callsign;
+my $line;
+my $remote_login;
+my $spot_remarks;
+my $remote_port;
+my $spot;
+my $returned;
+my $cluster_port;
+my $cluster_host;
+my $cluster_login;
+my $cluster_identifier;
+
+GetOptions(
+  'port=s'                =>  \( $cluster_port    = '8000' ),
+  'host=s'                =>  \( $cluster_host    = 'hrd.wa9pie.net' ),
+  'login=s'               =>  \( $cluster_login   = 'k5lrk-10' ),
+  'cluster_identifier=s'  =>  \( $cluster_identifier  = 'WA9PIE-2' ),
+  'help'     =>   sub { HelpMessage(0) },
+) or HelpMessage(1);
+
+# die unless we got the mandatory argument
+# HelpMessage(1) unless $holder_name;
+
+if ( $cluster_port )
+{
+  printf "Cluster port: %s\n", $cluster_port;
+}
+
+if ( $cluster_host )
+{
+  printf "Cluster host %s\n", $cluster_host;
+}
+
+if ( $cluster_login )
+{
+  printf "Cluster login %s\n", $cluster_login;
+}
+
+if ( $cluster_identifier )
+{
+  printf "Cluster identifier %s\n", $cluster_identifier;
+}
+
+
+# auto-flush on socket
+$| = 1;
+
+$remote_telnet = new Net::Telnet ( Timeout => 30,
+                                   telnetmode => 0,
+                                   Input_log => "remote_data.log",
+                                   Port => $cluster_port 
+                                 );
+$remote_telnet->open( $cluster_host );
+$remote_telnet->waitfor(' /ogin:/i' );
+$remote_telnet->print ( $cluster_login ); 
+
+while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
+{
+    chomp $line;
+
+    #
+    # Take this line:  DX de OE3SPR:    28017.0  PY2OT        tks qso dr rod                 1847Z
+    # And make it look like this:  dx (frequency) (callsign) (remarks)
+    #
+
+    if ( $line =~ /DX de\s+(\w+):\s+([0-9.]+)\s+(\w+)\s+(.*)\s+/ )
+    {
+        #         DX de OE3SPR:    28017.0  PY2OT        tks qso dr rod                 1847Z
+        print $line . "\n";
+        $line =~ /DX de\s+(\w+):\s+([0-9.]+)\s+(\w+)\s+(.*)\s+/;
+
+        $spotter_callsign = $1;
+        $spot_frequency   = $2;
+        $spot_callsign    = $3;
+        $spot_remarks     = trim ( $4 );
+
+        printf "spotter_callsign: %s\n", $spotter_callsign;
+        printf "  spot_frequency: %s\n", $spot_frequency;
+        printf "   spot_callsign: %s\n", $spot_callsign;
+        printf "    spot_remarks: %s\n", $spot_remarks;
+
+        $spot      = sprintf "cluster_identifier=%s:spotter_callsign=%s:spot_frequency=%s:spot_callsign=%s:cluster_identifier=%s:spot_remarks=%s",
+                             $cluster_identifier,  $spotter_callsign,  $spot_frequency,  $spot_callsign,  $cluster_identifier,   $spot_remarks;
+        $spot      = sprintf "DX %s %s %s: %s", $spot_frequency, $spot_callsign, $cluster_identifier, $spot_remarks;
+        printf "%s\n",  $spot;
+
+        my $socket = new IO::Socket::INET
+        (
+            PeerHost => 'localhost',
+            PeerPort => '7777',
+            Proto => 'tcp',
+        );
+
+        if($socket)
+        {
+            my $size = $socket->send($spot);
+            # print "Sent!\n";
+            $socket->close();
+        }
+        ########################################################################
+    }
+}
+
+sub ltrim
+{
+  my $s = shift;
+  $s =~ s/^\s*//;
+  return $s
+};
+
+sub rtrim
+{
+  my $s = shift;
+  $s =~ s/\s*$//;
+  return $s
+};
+
+sub  trim
+{
+  my $s = shift;
+  $s =~ s/^\s*|\s*$//g;
+  return $s
+};

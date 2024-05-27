@@ -1,0 +1,29 @@
+#! /usr/bin/bash
+
+cluster_port=8000
+cluster_host="hrd.wa9pie.net"
+cluster_login="k5lrk-8"
+cluster_identifier="WA9PIE"
+
+logfile="$cluster_identifier.log"
+./cluster_client --port  $cluster_port                     \
+                 --host  $cluster_host                     \
+                 --login $cluster_login                    \
+                 --cluster_identifier $cluster_identifier  > $logfile &
+pid=$!
+pidfile="$cluster_identifier.pid"
+echo $pid > $pidfile
+
+cluster_port=7373
+cluster_host="pota-cluster.iz2lsc.eu"
+cluster_login="k5lrk-9"
+cluster_identifier="POTA"
+
+logfile="$cluster_identifier.log"
+./cluster_client --port  $cluster_port                     \
+                 --host  $cluster_host                     \
+                 --login $cluster_login                    \
+                 --cluster_identifier $cluster_identifier  > $logfile &
+pid=$!
+pidfile="$cluster_identifier.pid"
+echo $pid >> $pidfile
