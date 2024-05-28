@@ -153,8 +153,6 @@ sub get_qrz_data
 
   my $qrz_data;
 
-  # $callsign = "wa5wni";
-
 $qrz -> set_callsign ( $callsign );
  
 # get the listing, bio and other information
@@ -174,78 +172,3 @@ $qrz -> set_callsign ( $callsign );
 
   return ( $qrz_data );
 }
-
-#Dumper listing:
-#$VAR1 = {
-#          'addr1' => 'LAVALLEJA MINAS',
-#          'addr2' => 'VILLA SERRANA',
-#          'call' => 'CX7SS',
-#          'ccode' => '270',
-#          'class' => 'AV',
-#          'country' => 'Uruguay',
-#          'cqzone' => '13',
-#          'dxcc' => '144',
-#          'email' => 'cx7ss@hotmail.com',
-#          'eqsl' => '1',
-#          'fname' => 'E. EUGENIO',
-#          'grid' => 'GF25lq',
-#          'ituzone' => '14',
-#          'land' => 'Uruguay',
-#          'lat' => '-34.313333',
-#          'locref' => '3',
-#          'lon' => '-55.043333',
-#          'lotw' => '1',
-#          'moddate' => '2021-08-10 15:40:38',
-#          'mqsl' => '1',
-#          'name' => 'DE MARINO',
-#          'qslmgr' => 'QSL VIA LOTW -E.QSL-QRZ,COM',
-#          'u_views' => '128741',
-#          'user' => 'CX7SS',
-#          'zip' => '30000'
-#        };
-#
-#
-#Dumper bio
-#$VAR1 = undef;
-#
-#
-#Dumper bio_file
-#$VAR1 = undef;
-#
-#
-#Dumper dxcc
-#$VAR1 = {
-#          'cc' => 'UY',
-#          'ccc' => 'URY',
-#          'continent' => 'SA',
-#          'cqzone' => '13',
-#          'dxcc' => '144',
-#          'ituzone' => '14',
-#          'lat' => '-33.119150',
-#          'lon' => '-56.140137',
-#          'name' => 'Uruguay',
-#          'timezone' => '-3'
-#        };
-#
-#
-#Dumper session
-#$VAR1 = {
-#          'Count' => '3263',
-#          'GMTime' => 'Mon May 27 19:31:11 2024',
-#          'Key' => 'dbca4cd50de560c48ab3265b07baba17',
-#          'Remark' => 'cpu: 0.019s',
-#          'SubExp' => 'Wed Jan 15 02:01:03 2025'
-#        };
-#
-#
-#Dumper arrl_section
-#$VAR1 = undef;
-#
-#
-#$VAR1 = {
-#          'spot_callsign' => 'CX7SS',
-#          'spot_cluster_identifier' => 'WA9PIE-2',
-#          'spot_frequency' => '21248.0',
-#          'spot_remarks' => 'PLS LISTEN TO OD5OJ'
-#        };
-#$VAR1 = !!1;
