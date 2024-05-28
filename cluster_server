@@ -44,7 +44,11 @@ $Data::Dumper::Sortkeys = 1;
 $| = 1;
  
 $qrz_username = "wa5wni";
-$qrz_password = "ChDa0123";
+print "Enter QRZ password: ";
+$qrz_password = <>;
+$qrz_password = trim ( $qrz_password );
+printf "password: %s\n", $qrz_password;
+exit;
 
 $qrz = Ham::Reference::QRZ->new(
   username => $qrz_username,
@@ -101,7 +105,7 @@ while(1)
       #printf "key: %-20s  value: %s\n", $key, $value;
     }
 
-    $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
+    #    $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
     $qrz_cc = $qrz_data -> { dxcc } -> { cc };
     if ( $qrz_data -> { listing } -> { state } )
     {
