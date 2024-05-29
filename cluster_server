@@ -109,7 +109,7 @@ while ( 1 )
     {
         $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
 
-        $qrz_cc = $qrz_data -> { dxcc } -> { cc };
+        $qrz_cc = $qrz_data -> { dxcc } -> { ccc };
         if ( $qrz_data -> { listing } -> { state } )
         {
           $qrz_state = $qrz_data -> { listing } -> { 'state' };
