@@ -28,6 +28,7 @@ my $qrz_data;
 my $qrz_cc;
 my $qrz_state;
 my $qrz_password;
+my $qrz_query;
 my $qrz_username;
 my $remarks;
 my $returned;
@@ -42,18 +43,9 @@ $Data::Dumper::Sortkeys = 1;
 
 # auto-flush on socket
 $| = 1;
- 
-$qrz_username = "wa5wni";
-print "Enter QRZ password: ";
-$qrz_password = <>;
-$qrz_password = trim ( $qrz_password );
-printf "password: %s\n", $qrz_password;
-exit;
 
-$qrz = Ham::Reference::QRZ->new(
-  username => $qrz_username,
-  password => $qrz_password
-);
+$qrz_query = 1;
+ 
 
 $local_login       = 'k5lrk-4';
 
@@ -81,8 +73,16 @@ local_flush ( );
 die "Cannot create socket $!\n" unless $socket;
 
 $SIG{INT} = sub { $socket->close(); exit 0; };
+if ( $qrz_query )
+{
+    $qrz_username = "wa5wni";
+    print "Enter QRZ password: ";
+    $qrz_password = <>;
+    $qrz_password = trim ( $qrz_password );
+    #printf "password: %s\n", $qrz_password;
+}
 
-while(1)
+while ( 1 )
 {
     $client_socket = $socket->accept();
 
@@ -93,10 +93,10 @@ while(1)
     $spot = "";
     $client_socket->recv($spot, 1024);
     
-    #printf "spot: %s\n", $spot;
+    # printf "spot: %s\n", $spot;
     @$spot_data = split /:/, $spot, 5;
-    #print "spot_data:\n";
-    #print Dumper $spot_data;
+    # print "spot_data:\n";
+    # print Dumper $spot_data;
 
     for $spot_datum ( @$spot_data )
     {
@@ -105,22 +105,38 @@ while(1)
       #printf "key: %-20s  value: %s\n", $key, $value;
     }
 
-    #    $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
-    $qrz_cc = $qrz_data -> { dxcc } -> { cc };
-    if ( $qrz_data -> { listing } -> { state } )
+    if ( $qrz_query )
     {
-      $qrz_state = $qrz_data -> { listing } -> { 'state' };
+        $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
+        $qrz_cc = $qrz_data -> { dxcc } -> { cc };
+        if ( $qrz_data -> { listing } -> { state } )
+        {
+          $qrz_state = $qrz_data -> { listing } -> { 'state' };
+        }
+        else
+        {
+          $qrz_cc = "__";
+          $qrz_state = "__";
+        }
     }
     else
     {
-      $qrz_state = "";
+        $qrz_cc = "??";
+        $qrz_state = "??";
     }
     $remarks = $cluster_data -> { spot_remarks };
 
-    $cluster_data -> { spot_remarks } = sprintf "%s: %s/%s %s %s", $cluster_data -> { cluster_identifier },
-                                                                   $qrz_cc, $qrz_state,
-                                                                   $cluster_data -> { spotter_callsign },
-                                                                   $remarks;
+    #$cluster_data -> { spot_remarks } = sprintf "%s: %s/%s %s %s", 
+    #                                             $cluster_data -> { cluster_identifier },
+    #                                                 $qrz_cc,
+    #                                                    $qrz_state,
+    #                                                       $cluster_data -> { spotter_callsign },
+    #                                                          $remarks;
+    $cluster_data -> { spot_remarks } = sprintf "%s/%s %s %s", 
+                                                 $qrz_cc,
+                                                    $qrz_state,
+                                                       $cluster_data -> { spotter_callsign },
+                                                          $remarks;
 
     $cluster_report = sprintf "DX %s %s %s\n",
                               $cluster_data -> { spot_frequency },
@@ -153,15 +169,12 @@ sub get_qrz_data
 
   my $qrz_data;
 
-$qrz -> set_callsign ( $callsign );
- 
-# get the listing, bio and other information
-#$listing      = $qrz -> get_listing;
-#$bio          = $qrz -> get_bio;
-#$bio_file     = $qrz -> get_bio_file;
-#$dxcc         = $qrz -> get_dxcc;
-#$session      = $qrz -> get_session;
-#$arrl_section = $qrz -> get_arrl_section;
+  $qrz = Ham::Reference::QRZ->new(
+    username => $qrz_username,
+    password => $qrz_password
+  );
+
+  $qrz -> set_callsign ( $callsign );
  
   $qrz_data -> { listing }      = $qrz -> get_listing ;
   $qrz_data -> { bio }          = $qrz -> get_bio ;
