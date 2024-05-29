@@ -23,6 +23,7 @@ my $local_host;
 my $local_login;
 my $local_port;
 my $local_telnet;
+my $mode;
 my $qrz;
 my $qrz_data;
 my $qrz_cc;
@@ -104,6 +105,7 @@ while ( 1 )
       $cluster_data -> { $key } = $value;
       #printf "key: %-20s  value: %s\n", $key, $value;
     }
+    $mode = get_mode ( $cluster_data -> { spot_frequency } );
 
     if ( $qrz_query )
     {
@@ -132,11 +134,12 @@ while ( 1 )
     #                                                    $qrz_state,
     #                                                       $cluster_data -> { spotter_callsign },
     #                                                          $remarks;
-    $cluster_data -> { spot_remarks } = sprintf "%s/%s %s %s", 
+    $cluster_data -> { spot_remarks } = sprintf "%s/%s/%s %s %s", 
                                                  $qrz_cc,
                                                     $qrz_state,
-                                                       $cluster_data -> { spotter_callsign },
-                                                          $remarks;
+                                                       $mode,
+                                                          $cluster_data -> { spotter_callsign },
+                                                             $remarks;
 
     $cluster_report = sprintf "DX %s %s %s\n",
                               $cluster_data -> { spot_frequency },
@@ -186,4 +189,116 @@ sub get_qrz_data
   #$qrz_data -> { arrl_section } = $qrz -> get_arrl_section ;
 
   return ( $qrz_data );
+}
+
+sub get_mode
+{
+  my $frequency = shift;
+
+  my $band;
+  my $band_limits;
+  my $bands;
+  my $mhz;
+  my $mode;
+  my $voice;
+
+
+  $bands =
+  {
+    '1mhz'   => '160_meter',
+    '3mhz'   => '80_meter',
+    '5mhz'   => '60_meter',
+    '7mhz'   => '40_meter',
+    '10mhz'  => '30_meter',
+    '14mhz'  => '20_meter',
+    '18mhz'  => '17_meter',
+    '21mhz'  => '15_meter',
+    '24mhz'  => '12_meter',
+    '28mhz'  => '10_meter',
+    '29mhz'  => '10_meter',
+    '50mhz'  => '6_meter',
+    '51mhz'  => '6_meter',
+    '52mhz'  => '6_meter',
+    '53mhz'  => '6_meter'
+  };
+
+  $band_limits =
+  {
+    '160_meter' =>
+    {
+      'bottom' => 1.800,
+      'voice'  => 1.800,
+      'top'    => 2.000
+    },
+    '60_meter' =>
+    {
+      'bottom' => 5.300,
+      'voice'  => 5.300,
+      'top'    => 5.400
+    },
+    '40_meter' =>
+    {
+      'bottom' => 7.000,
+      'voice'  => 7.125,
+      'top'    => 7.300
+    },
+    '30_meter' =>
+    {
+      'bottom' => 10.100,
+      'voice'  => 10.100,
+      'top'    => 10.15
+    },
+    '20_meter' =>
+    {
+      'bottom' => 14.000,
+      'voice'  => 14.150,
+      'top'    => 14.350
+    },
+    '17_meter' =>
+    {
+      'bottom' => 18.068,
+      'voice'  => 18.110,
+      'top'    => 18.168
+    },
+    '15_meter' =>
+    {
+      'bottom' => 21.000,
+      'voice'  => 21.200,
+      'top'    => 21.450
+    },
+    '12_meter' =>
+    {
+      'bottom' => 24.890,
+      'voice'  => 24.930,
+      'top'    => 24.990
+    },
+    '10_meter' =>
+    {
+      'bottom' => 28.000,
+      'voice'  => 28.300,
+      'top'    => 29.700
+    },
+    '6_meter' =>
+    {
+      'bottom' => 50.000,
+      'voice'  => 50.100,
+      'top'    => 54.000
+    }
+  };
+
+
+  $mhz = sprintf "%smhz", int ( ( $frequency / 1000 ) );
+  $band = $bands  -> { $mhz };
+  $voice = $band_limits -> { $band } -> { voice };
+
+  if ( $frequency < $voice )
+  {
+    $mode = "d";
+  }
+  else
+  {
+    $mode = "v";
+  }
+
+  return $mode;
 }
