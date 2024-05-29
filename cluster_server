@@ -108,6 +108,7 @@ while ( 1 )
     if ( $qrz_query )
     {
         $qrz_data = get_qrz_data ( $cluster_data -> { spot_callsign } );
+
         $qrz_cc = $qrz_data -> { dxcc } -> { cc };
         if ( $qrz_data -> { listing } -> { state } )
         {
@@ -115,7 +116,6 @@ while ( 1 )
         }
         else
         {
-          $qrz_cc = "__";
           $qrz_state = "__";
         }
     }
@@ -178,11 +178,12 @@ sub get_qrz_data
   $qrz -> set_callsign ( $callsign );
  
   $qrz_data -> { listing }      = $qrz -> get_listing ;
-  $qrz_data -> { bio }          = $qrz -> get_bio ;
-  $qrz_data -> { bio_file }     = $qrz -> get_bio_file ;
   $qrz_data -> { dxcc }         = $qrz -> get_dxcc ;
-  $qrz_data -> { session }      = $qrz -> get_session ;
-  $qrz_data -> { arrl_section } = $qrz -> get_arrl_section ;
+
+  #$qrz_data -> { bio }          = $qrz -> get_bio ;
+  #$qrz_data -> { bio_file }     = $qrz -> get_bio_file ;
+  #$qrz_data -> { session }      = $qrz -> get_session ;
+  #$qrz_data -> { arrl_section } = $qrz -> get_arrl_section ;
 
   return ( $qrz_data );
 }
