@@ -142,8 +142,9 @@ while ( 1 )
                               $cluster_data -> { spot_frequency },
                               $cluster_data -> { spot_callsign },
                               $cluster_data -> { spot_remarks };
-#    #print Dumper $qrz_data;
-#
+    #
+    #
+    #
     local_flush ( );
     printf "cluster_report: %s", $cluster_report;
     $local_telnet -> print ( $cluster_report );
