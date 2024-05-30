@@ -24,6 +24,7 @@ my $local_login;
 my $local_port;
 my $local_telnet;
 my $mode;
+my $pota;
 my $qrz;
 my $qrz_data;
 my $qrz_cc;
@@ -128,17 +129,22 @@ while ( 1 )
     }
     $remarks = $cluster_data -> { spot_remarks };
 
-    #$cluster_data -> { spot_remarks } = sprintf "%s: %s/%s %s %s", 
-    #                                             $cluster_data -> { cluster_identifier },
-    #                                                 $qrz_cc,
-    #                                                    $qrz_state,
-    #                                                       $cluster_data -> { spotter_callsign },
-    #                                                          $remarks;
-    $cluster_data -> { spot_remarks } = sprintf "%s/%s/%s %s %s", 
+    if ( $remarks =~ /\[-POTA-\]/ )
+    {
+      $remarks =~ s/\[-POTA-\]//;
+      $pota = 'p';
+    }
+    else
+    {
+      $pota = " ";
+    }
+
+    $cluster_data -> { spot_remarks } = sprintf "%s/%s/%s/%s %s %s", 
                                                  $qrz_cc,
                                                     $qrz_state,
                                                        $mode,
-                                                          $cluster_data -> { spotter_callsign },
+                                                          $pota,
+                                                             $cluster_data -> { spotter_callsign },
                                                              $remarks;
 
     $cluster_report = sprintf "DX %s %s %s\n",
@@ -288,16 +294,23 @@ sub get_mode
 
 
   $mhz = sprintf "%smhz", int ( ( $frequency / 1000 ) );
-  $band = $bands  -> { $mhz };
-  $voice = $band_limits -> { $band } -> { voice };
-
-  if ( $frequency < $voice )
+  if ( $bands  -> { $mhz } )
   {
-    $mode = "d";
+    $band = $bands  -> { $mhz };
+    $voice = $band_limits -> { $band } -> { voice };
+
+    if ( $frequency < $voice )
+    {
+      $mode = "d";
+    }
+    else
+    {
+      $mode = "v";
+    }
   }
   else
   {
-    $mode = "v";
+    $mode = "?";
   }
 
   return $mode;
