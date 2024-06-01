@@ -4,6 +4,7 @@ use Getopt::Long;
 use IO::Socket::INET;
 use Net::Telnet;
 use Ham::Reference::QRZ;
+use utf8;
 use Data::Dumper;
 use strict;
 use warnings;
@@ -33,7 +34,6 @@ my $qrz_password;
 my $qrz_query;
 my $qrz_username;
 my $remarks;
-my $returned;
 my $session;
 my $socket;
 my $spot;
@@ -94,17 +94,15 @@ while ( 1 )
     # Read up to 1024 characters from the connected client
     $spot = "";
     $client_socket->recv($spot, 1024);
+
+    utf8::encode ( $spot );
     
-    # printf "spot: %s\n", $spot;
     @$spot_data = split /:/, $spot, 5;
-    # print "spot_data:\n";
-    # print Dumper $spot_data;
 
     for $spot_datum ( @$spot_data )
     {
       ( $key, $value ) = split /=/, $spot_datum, 2;
       $cluster_data -> { $key } = $value;
-      #printf "key: %-20s  value: %s\n", $key, $value;
     }
     $mode = get_mode ( $cluster_data -> { spot_frequency } );
 
@@ -145,15 +143,12 @@ while ( 1 )
                                                        $mode,
                                                           $pota,
                                                              $cluster_data -> { spotter_callsign },
-                                                             $remarks;
+                                                                  $remarks;
 
     $cluster_report = sprintf "DX %s %s %s\n",
-                              $cluster_data -> { spot_frequency },
-                              $cluster_data -> { spot_callsign },
-                              $cluster_data -> { spot_remarks };
-    #
-    #
-    #
+                                  $cluster_data -> { spot_frequency },
+                                     $cluster_data -> { spot_callsign },
+                                        $cluster_data -> { spot_remarks };
     local_flush ( );
     printf "cluster_report: %s", $cluster_report;
     $local_telnet -> print ( $cluster_report );
@@ -161,6 +156,8 @@ while ( 1 )
 #
 sub local_flush
 {
+    my $returned;
+
     $returned = $local_telnet -> get ( Timeout => 0 );
 }
 
