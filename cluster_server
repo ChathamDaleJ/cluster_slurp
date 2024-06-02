@@ -9,9 +9,6 @@ use Data::Dumper;
 use strict;
 use warnings;
 
-my $arrl_section;
-my $bio;
-my $bio_file;
 my $callsign;
 my $client_address;
 my $client_socket;
@@ -187,10 +184,7 @@ sub get_qrz_data
   $qrz_data -> { listing }      = $qrz -> get_listing ;
   $qrz_data -> { dxcc }         = $qrz -> get_dxcc ;
 
-  #$qrz_data -> { bio }          = $qrz -> get_bio ;
-  #$qrz_data -> { bio_file }     = $qrz -> get_bio_file ;
   #$qrz_data -> { session }      = $qrz -> get_session ;
-  #$qrz_data -> { arrl_section } = $qrz -> get_arrl_section ;
 
   return ( $qrz_data );
 }
