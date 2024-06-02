@@ -6,21 +6,23 @@ use Net::Telnet;
 use strict;
 use warnings;
 
-my $remote_host;
 my $remote_telnet;
 my $spot_callsign;
 my $spot_frequency;
 my $spotter_callsign;
 my $line;
-my $remote_login;
 my $spot_remarks;
-my $remote_port;
 my $spot;
-my $returned;
+#
+# Cluster variables refer to the DX spot cluster to which
+# We connect to slurp spots.
+#
 my $cluster_port;
 my $cluster_host;
 my $cluster_login;
 my $cluster_identifier;
+my $socket;
+my $size;
 
 GetOptions(
   'port=s'                =>  \( $cluster_port    = '8000' ),
@@ -29,30 +31,6 @@ GetOptions(
   'cluster_identifier=s'  =>  \( $cluster_identifier  = 'WA9PIE-2' ),
   'help'     =>   sub { HelpMessage(0) },
 ) or HelpMessage(1);
-
-# die unless we got the mandatory argument
-# HelpMessage(1) unless $holder_name;
-
-if ( $cluster_port )
-{
-  printf "Cluster port: %s\n", $cluster_port;
-}
-
-if ( $cluster_host )
-{
-  printf "Cluster host %s\n", $cluster_host;
-}
-
-if ( $cluster_login )
-{
-  printf "Cluster login %s\n", $cluster_login;
-}
-
-if ( $cluster_identifier )
-{
-  printf "Cluster identifier %s\n", $cluster_identifier;
-}
-
 
 # auto-flush on socket
 $| = 1;
@@ -71,8 +49,7 @@ while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
     chomp $line;
 
     #
-    # Take this line:  DX de OE3SPR:    28017.0  PY2OT        tks qso dr rod                 1847Z
-    # And make it look like this:  dx (frequency) (callsign) (remarks)
+    # Parse the line:  DX de OE3SPR:    28017.0  PY2OT        tks qso dr rod                 1847Z
     #
 
     if ( $line =~ /DX de\s+(\w+):\s+([0-9.]+)\s+(\w+)\s+(.*)\s+/ )
@@ -87,23 +64,15 @@ while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
         $spot_callsign    = $3;
         $spot_remarks     = trim ( $4 );
 
-        # printf "spotter_callsign: %s\n", $spotter_callsign;
-        # printf "  spot_frequency: %s\n", $spot_frequency;
-        # printf "   spot_callsign: %s\n", $spot_callsign;
-        # printf "    spot_remarks: %s\n", $spot_remarks;
-
         $spot      = sprintf "cluster_identifier=%s:spotter_callsign=%s:spot_frequency=%s:spot_callsign=%s:spot_remarks=%s",
                              $cluster_identifier,
                              $spotter_callsign,
                              $spot_frequency,
                              $spot_callsign,
                              $spot_remarks;
-        printf "%s\n",  $spot;
-        print $line . "\n\n";
-        # print "\n";
 
         ########################################################################
-        my $socket = new IO::Socket::INET
+        $socket = new IO::Socket::INET
         (
             PeerHost => 'localhost',
             PeerPort => '7777',
@@ -112,7 +81,7 @@ while ( $line = $remote_telnet -> getline ( Timeout => 999999 ) )
         
         if($socket)
         {
-            my $size = $socket->send($spot);
+            $size = $socket->send($spot);
             # print "Sent!\n";
             $socket->close();
         }
