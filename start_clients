@@ -26,4 +26,4 @@ logfile="$cluster_identifier.log"
                  --cluster_identifier $cluster_identifier  > $logfile &
 pid=$!
 pidfile="$cluster_identifier.pid"
-echo $pid >> $pidfile
+echo $pid > $pidfile

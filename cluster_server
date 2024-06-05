@@ -224,63 +224,63 @@ sub get_mode
   {
     '160_meter' =>
     {
-      'bottom' => 1.800,
-      'voice'  => 1.800,
-      'top'    => 2.000
+      'bottom' => 1800,
+      'voice'  => 1800,
+      'top'    => 2000
     },
     '60_meter' =>
     {
-      'bottom' => 5.300,
-      'voice'  => 5.300,
-      'top'    => 5.400
+      'bottom' => 5300,
+      'voice'  => 5300,
+      'top'    => 5400
     },
     '40_meter' =>
     {
-      'bottom' => 7.000,
-      'voice'  => 7.125,
-      'top'    => 7.300
+      'bottom' => 7000,
+      'voice'  => 7125,
+      'top'    => 7300
     },
     '30_meter' =>
     {
-      'bottom' => 10.100,
-      'voice'  => 10.100,
-      'top'    => 10.15
+      'bottom' => 10100,
+      'voice'  => 10100,
+      'top'    => 1015
     },
     '20_meter' =>
     {
-      'bottom' => 14.000,
-      'voice'  => 14.150,
-      'top'    => 14.350
+      'bottom' => 14000,
+      'voice'  => 14150,
+      'top'    => 14350
     },
     '17_meter' =>
     {
-      'bottom' => 18.068,
-      'voice'  => 18.110,
-      'top'    => 18.168
+      'bottom' => 18068,
+      'voice'  => 18110,
+      'top'    => 18168
     },
     '15_meter' =>
     {
-      'bottom' => 21.000,
-      'voice'  => 21.200,
-      'top'    => 21.450
+      'bottom' => 21000,
+      'voice'  => 21200,
+      'top'    => 21450
     },
     '12_meter' =>
     {
-      'bottom' => 24.890,
-      'voice'  => 24.930,
-      'top'    => 24.990
+      'bottom' => 24890,
+      'voice'  => 24930,
+      'top'    => 24990
     },
     '10_meter' =>
     {
-      'bottom' => 28.000,
-      'voice'  => 28.300,
-      'top'    => 29.700
+      'bottom' => 28000,
+      'voice'  => 28300,
+      'top'    => 29700
     },
     '6_meter' =>
     {
-      'bottom' => 50.000,
-      'voice'  => 50.100,
-      'top'    => 54.000
+      'bottom' => 50000,
+      'voice'  => 50100,
+      'top'    => 54000
     }
   };
 
